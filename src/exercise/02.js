@@ -2,16 +2,19 @@
 // http://localhost:3000/isolated/exercise/02.js
 
 import * as React from 'react'
-
-function Greeting({initialName = ''}) {
-  // 🐨 initialize the state to the value from localStorage
-  // 💰 window.localStorage.getItem('name') ?? initialName
-
-  const [name, setName] = React.useState(
-    () => window.localStorage.getItem('name') || initialName,
+function useLocalStorageState({defaultValue = '', key}) {
+  const [state, setState] = React.useState(
+    () => window.localStorage.getItem(key) || defaultValue,
   )
   React.useEffect(() => {
-    window.localStorage.setItem('name', name)
+    window.localStorage.setItem(key, state)
+  }, [key, state])
+  return [state, setState]
+}
+function Greeting({initialName = ''}) {
+  const [name, setName] = useLocalStorageState({
+    defaultValue: initialName,
+    key: 'name',
   })
   // 🐨 Here's where you'll use `React.useEffect`.
   // The callback should set the `name` in localStorage.
@@ -32,7 +35,15 @@ function Greeting({initialName = ''}) {
 }
 
 function App() {
-  return <Greeting />
+  const [count, setCount] = React.useState(0)
+  return (
+    <>
+      <button onClick={() => setCount(previousValue => ++previousValue)}>
+        {count}
+      </button>
+      <Greeting />
+    </>
+  )
 }
 
 export default App

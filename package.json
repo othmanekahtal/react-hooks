@@ -17,6 +17,7 @@
     "@kentcdodds/react-workshop-app": "^4.3.0",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
+    "babel-loader": "^8.2.3",
     "codegen.macro": "^4.1.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",

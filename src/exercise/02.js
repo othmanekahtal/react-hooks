@@ -2,13 +2,24 @@
 // http://localhost:3000/isolated/exercise/02.js
 
 import * as React from 'react'
-function useLocalStorageState({defaultValue = '', key}) {
-  const [state, setState] = React.useState(
-    () => window.localStorage.getItem(key) || defaultValue,
+function useLocalStorageState({
+  defaultValue = '',
+  key,
+  options = {serialize: JSON.stringify, deserailize: JSON.parse},
+}) {
+  const [state, setState] = React.useState(() =>
+    window.localStorage.getItem(key)
+      ? options.deserailize(window.localStorage.getItem(key))
+      : typeof defaultValue === 'function'
+      ? defaultValue()
+      : defaultValue,
   )
+  const prevKey = React.useRef(key)
+  console.log({prev: prevKey.current, key})
+  if (prevKey.current !== key) window.localStorage.removeItem(prevKey.current)
   React.useEffect(() => {
-    window.localStorage.setItem(key, state)
-  }, [key, state])
+    window.localStorage.setItem(key, options.serialize(state))
+  }, [key, options, options.serialize, state])
   return [state, setState]
 }
 function Greeting({initialName = ''}) {

@@ -2,10 +2,38 @@
 // http://localhost:3000/isolated/exercise/04.js
 
 import * as React from 'react'
-
+function useLocalStorageState({
+  defaultValue = '',
+  key,
+  options = {serialize: JSON.stringify, deserailize: JSON.parse},
+}) {
+  const [state, setState] = React.useState(() =>
+    window.localStorage.getItem(key)
+      ? options.deserailize(window.localStorage.getItem(key))
+      : typeof defaultValue === 'function'
+      ? defaultValue()
+      : defaultValue,
+  )
+  const prevKey = React.useRef(key)
+  console.log({prev: prevKey.current, key})
+  if (prevKey.current !== key) window.localStorage.removeItem(prevKey.current)
+  React.useEffect(() => {
+    window.localStorage.setItem(key, options.serialize(state))
+  }, [key, options, options.serialize, state])
+  return [state, setState]
+}
 function Board() {
   // 🐨 squares is the state for this component. Add useState for squares
-  const squares = Array(9).fill(null)
+  // const [squares, setSquares] = React.useState(
+  //   () => JSON.parse(localStorage.getItem('squares')) || Array(9).fill(null),
+  // )
+  const [squares, setSquares] = useLocalStorageState({
+    defaultValue: Array(9).fill(null),
+    key: 'squares',
+  })
+  const nextValue = calculateNextValue(squares)
+  const winner = calculateWinner(squares)
+  const status = calculateStatus(winner, squares, nextValue)
 
   // 🐨 We'll need the following bits of derived state:
   // - nextValue ('X' or 'O')
@@ -17,6 +45,12 @@ function Board() {
   // This is the function your square click handler will call. `square` should
   // be an index. So if they click the center square, this will be `4`.
   function selectSquare(square) {
+    if (winner || squares[square]) {
+      return
+    }
+    const squareCopy = [...squares]
+    squareCopy[square] = nextValue
+    setSquares(squareCopy)
     // 🐨 first, if there's already winner or there's already a value at the
     // given square index (like someone clicked a square that's already been
     // clicked), then return early so we don't make any state changes
@@ -34,6 +68,7 @@ function Board() {
   }
 
   function restart() {
+    setSquares(Array(9).fill(null))
     // 🐨 reset the squares
     // 💰 `Array(9).fill(null)` will do it!
   }
@@ -49,7 +84,7 @@ function Board() {
   return (
     <div>
       {/* 🐨 put the status in the div below */}
-      <div className="status">STATUS</div>
+      <div className="status">{status}</div>
       <div className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
